@@ -1,0 +1,291 @@
+syntax = "proto3";
+package nexus;
+option csharp_namespace = "NexusGrpc";
+
+message Envelope {
+  string symbol = 1;
+  uint64 ts_unix_ns = 2;
+  oneof payload {
+    Handshake handshake = 10;
+    Subscribe subscribe = 11;
+    Unsubscribe unsubscribe = 12;
+    Heartbeat heartbeat = 13;
+
+    L1Tick l1 = 20;
+    L2Delta l2 = 21;
+    DOMSnapshot dom_snapshot = 22;
+    DOMDelta dom_delta = 23;
+
+    SignalRequest signal_req = 30;
+    SignalResponse signal_resp = 31;
+
+    OrderNew order_new = 40;
+    OrderModify order_modify = 41;
+    OrderCancel order_cancel = 42;
+    OrderAck order_ack = 43;
+    OrderFill fill = 44;
+    Error error = 45;
+  }
+}
+
+message Handshake { string client_id = 1; string version = 2; string session = 3; }
+message Subscribe { repeated string symbols = 1; uint32 depth = 2; }
+message Unsubscribe { repeated string symbols = 1; }
+message Heartbeat { uint64 nonce = 1; }
+
+message L1Tick {
+  double last_price = 1;
+  double bid_price = 2;
+  double ask_price = 3;
+  double last_size  = 4;
+  double bid_size   = 5;
+  double ask_size   = 6;
+  uint64 sequence   = 7;
+}
+
+enum Side { BID = 0; ASK = 1; }
+
+message L2Level { Side side = 1; uint32 level = 2; double price = 3; double size = 4; bool is_delete = 5; }
+message L2Delta { repeated L2Level updates = 1; uint64 sequence = 2; }
+
+message DOMLevel { Side side = 1; uint32 level = 2; double price = 3; double size = 4; }
+message DOMSnapshot { repeated DOMLevel levels = 1; uint64 sequence = 2; }
+message DOMDelta { repeated L2Level updates = 1; uint64 sequence = 2; }
+
+message Feature { string name = 1; double value = 2; }
+
+message SignalRequest {
+  string request_id = 1;
+  repeated Feature features = 2;
+  string strategy_hint = 3;
+}
+
+message SignalResponse {
+  string request_id = 1;
+  double signal = 2;
+  double confidence = 3;
+  string strategy_used = 4;
+  string reason = 5;
+}
+
+enum OrderSide { BUY = 0; SELL = 1; }
+enum OrderType { MARKET = 0; LIMIT = 1; STOP = 2; STOP_LIMIT = 3; }
+enum TimeInForce { DAY = 0; GTC = 1; FOK = 2; IOC = 3; }
+
+message OrderNew {
+  string client_order_id = 1;
+  OrderSide side = 2;
+  OrderType type = 3;
+  double qty = 4;
+  double limit_price = 5;
+  double stop_price = 6;
+  TimeInForce tif = 7;
+  double take_profit = 8;
+  double stop_loss = 9;
+}
+
+message OrderModify {
+  string client_order_id = 1;
+  string broker_order_id = 2;
+  double new_limit_price = 3;
+  double new_stop_price = 4;
+  double new_qty = 5;
+  double new_take_profit = 6;
+  double new_stop_loss = 7;
+}
+
+message OrderCancel { string client_order_id = 1; string broker_order_id = 2; }
+
+message OrderAck {
+  string client_order_id = 1;
+  string broker_order_id = 2;
+  string status = 3;
+  string reason = 4;
+}
+
+message OrderFill {
+  string client_order_id = 1;
+  string broker_order_id = 2;
+  double fill_qty = 3;
+  double fill_price = 4;
+  double cum_qty = 5;
+  double leaves_qty = 6;
+  string status = 7;
+}
+
+message Error { string code = 1; string message = 2; string context = 3; }
+
+// Market Data Messages
+message MarketData {
+  string symbol = 1;
+  double bid = 2;
+  double ask = 3;
+  double bid_size = 4;
+  double ask_size = 5;
+  double last_price = 6;
+  double last_size = 7;
+  int64 timestamp = 8;
+}
+
+message MarketDataRequest {
+  repeated string symbols = 1;
+  string subscription_type = 2; // "snapshot", "stream"
+}
+
+message MarketDataResponse {
+  repeated MarketData market_data = 1;
+}
+
+// Position Management
+message Position {
+  string symbol = 1;
+  double quantity = 2;
+  double avg_price = 3;
+  double unrealized_pnl = 4;
+  double realized_pnl = 5;
+  string side = 6; // "long", "short", "flat"
+  int64 last_update = 7;
+}
+
+message PositionRequest {
+  string account_id = 1;
+  optional string symbol = 2; // Empty for all positions
+}
+
+message PositionResponse {
+  repeated Position positions = 1;
+}
+
+// Account Information
+message Account {
+  string account_id = 1;
+  double cash_balance = 2;
+  double available_funds = 3;
+  double margin_used = 4;
+  double margin_available = 5;
+  double portfolio_value = 6;
+  double total_pnl = 7;
+  int64 last_update = 8;
+}
+
+message AccountRequest {
+  string account_id = 1;
+}
+
+message AccountResponse {
+  Account account = 1;
+}
+
+// Risk Management
+message RiskParameters {
+  double max_position_size = 1;
+  double max_daily_loss = 2;
+  double max_order_size = 3;
+  double max_leverage = 4;
+  bool circuit_breaker_enabled = 5;
+}
+
+message RiskLimits {
+  double current_position_size = 1;
+  double daily_loss = 2;
+  double current_leverage = 3;
+  bool circuit_breaker_triggered = 4;
+  string circuit_breaker_reason = 5;
+}
+
+message RiskRequest {
+  string account_id = 1;
+}
+
+message RiskResponse {
+  RiskParameters parameters = 1;
+  RiskLimits current_limits = 2;
+}
+
+// Historical Data
+message HistoricalDataRequest {
+  string symbol = 1;
+  string interval = 2; // "1m", "5m", "1h", "1d", etc.
+  int64 start_time = 3;
+  int64 end_time = 4;
+  int32 limit = 5;
+}
+
+message Bar {
+  int64 timestamp = 1;
+  double open = 2;
+  double high = 3;
+  double low = 4;
+  double close = 5;
+  double volume = 6;
+}
+
+message HistoricalDataResponse {
+  repeated Bar bars = 1;
+}
+
+// Strategy Management
+message Strategy {
+  string strategy_id = 1;
+  string name = 2;
+  string status = 3; // "active", "inactive", "error"
+  map<string, string> parameters = 4;
+  int64 created_at = 5;
+  int64 last_updated = 6;
+}
+
+message StrategyRequest {
+  string strategy_id = 1;
+}
+
+message StrategyResponse {
+  repeated Strategy strategies = 1;
+}
+
+message StrategyControl {
+  string strategy_id = 1;
+  string action = 2; // "start", "stop", "pause", "resume"
+  map<string, string> parameters = 3;
+}
+
+// Enhanced Envelope with additional message types
+message Envelope {
+  string message_id = 1;
+  string message_type = 2;
+  int64 timestamp = 3;
+  oneof payload {
+    // Original messages
+    Login login = 4;
+    LoginResponse login_response = 5;
+    NewOrder new_order = 6;
+    OrderAck order_ack = 7;
+    OrderReject order_reject = 8;
+    OrderFill order_fill = 9;
+    Error error = 10;
+    
+    // New message types
+    MarketDataRequest market_data_request = 11;
+    MarketDataResponse market_data_response = 12;
+    PositionRequest position_request = 13;
+    PositionResponse position_response = 14;
+    AccountRequest account_request = 15;
+    AccountResponse account_response = 16;
+    RiskRequest risk_request = 17;
+    RiskResponse risk_response = 18;
+    HistoricalDataRequest historical_data_request = 19;
+    HistoricalDataResponse historical_data_response = 20;
+    StrategyRequest strategy_request = 21;
+    StrategyResponse strategy_response = 22;
+    StrategyControl strategy_control = 23;
+  }
+}
+
+service NexusLink {
+  rpc TradeLink (stream Envelope) returns (stream Envelope);
+  rpc MarketDataStream (stream MarketDataRequest) returns (stream MarketDataResponse);
+  rpc GetPositions (PositionRequest) returns (PositionResponse);
+  rpc GetAccount (AccountRequest) returns (AccountResponse);
+  rpc GetRiskLimits (RiskRequest) returns (RiskResponse);
+  rpc GetHistoricalData (HistoricalDataRequest) returns (HistoricalDataResponse);
+  rpc ManageStrategies (stream StrategyControl) returns (stream StrategyResponse);
+}
