@@ -1378,7 +1378,11 @@ class StrategyManager:
 
     def register_strategy(self, strategy: IStrategy) -> None:
         """Register a trading strategy."""
-        strategy_name = strategy.__class__.__name__
+        # Use _strategy_name if available (for UniversalStrategyAdapter), otherwise use class name
+        if hasattr(strategy, '_strategy_name'):
+            strategy_name = strategy._strategy_name
+        else:
+            strategy_name = strategy.__class__.__name__
         self._strategies[strategy_name] = strategy
         self._logger.info(f"Registered strategy: {strategy_name}")
 
@@ -2516,8 +2520,8 @@ class MarketQualityLayer1:
             )
 
         # Decision gate thresholds (OPTIMIZED based on backtest analysis)
-        self.min_composite_score = 0.45  # Lowered from 0.5 - allows 92.6% NQ, ~70% BTC
-        self.min_liquidity_score = 0.3  # Keep this - already 100% pass rate
+        self.min_composite_score = 0.45  # Lowered from 0.5 - optimized for high pass rate
+        self.min_liquidity_score = 0.3  # Optimized threshold - high pass rate
         self.crisis_regimes = ["HIGH_VOLATILITY_LOW_LIQUIDITY", "CRISIS", "CRISIS_MODE"]
 
         # Performance tracking
@@ -4717,7 +4721,7 @@ class MLPipelineOrchestrator:
         Process complete trading opportunity through ML pipeline.
 
         Args:
-            symbol: Trading symbol (e.g., 'BTCUSDT')
+            symbol: Trading symbol (e.g., 'SYMBOL')
             signals: Raw signals from 20 strategies
             market_data: OHLCV DataFrame for MQScore calculation (Layer 1)
             portfolio: Current portfolio state

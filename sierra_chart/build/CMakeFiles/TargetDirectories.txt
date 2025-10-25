@@ -1,0 +1,4 @@
+C:/Users/Nexus AI/Documents/NEXUS/sierra_chart/build/CMakeFiles/NexusAI.dir
+C:/Users/Nexus AI/Documents/NEXUS/sierra_chart/build/CMakeFiles/INSTALL.dir
+C:/Users/Nexus AI/Documents/NEXUS/sierra_chart/build/CMakeFiles/ALL_BUILD.dir
+C:/Users/Nexus AI/Documents/NEXUS/sierra_chart/build/CMakeFiles/ZERO_CHECK.dir

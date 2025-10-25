@@ -1,0 +1,10 @@
+^C:\USERS\NEXUS AI\DOCUMENTS\NEXUS\SIERRA_CHART\BUILD\CMAKEFILES\146D9CCB1BCDED84B2F4905E1D260B88\GENERATE.STAMP.RULE
+setlocal
+"C:\Program Files\CMake\bin\cmake.exe" "-SC:/Users/Nexus AI/Documents/NEXUS/sierra_chart" "-BC:/Users/Nexus AI/Documents/NEXUS/sierra_chart/build" --check-stamp-list CMakeFiles/generate.stamp.list --vs-solution-file "C:/Users/Nexus AI/Documents/NEXUS/sierra_chart/build/NexusAI_SierraChart.slnx"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd

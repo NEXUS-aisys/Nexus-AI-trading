@@ -2786,7 +2786,7 @@ class VolumeImbalanceNexusAdapter:
             # Execute base strategy - call process_market_data instead of removed execute()
             # Convert dict to MarketData object first
             from decimal import Decimal
-            from volume_imbalance import MarketData
+            # MarketData is already defined in this file - no import needed
             
             price_val = market_data.get('close', market_data.get('price', 0.0))
             market_data_obj = MarketData(

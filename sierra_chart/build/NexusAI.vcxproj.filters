@@ -1,0 +1,22 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="18.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="C:\Users\Nexus AI\Documents\NEXUS\sierra_chart\NexusAI_Complete.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\Nexus AI\Documents\NEXUS\sierra_chart\nexus_trading.pb.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\Nexus AI\Documents\NEXUS\sierra_chart\nexus_trading.grpc.pb.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="C:\Users\Nexus AI\Documents\NEXUS\sierra_chart\CMakeLists.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{00A56128-4855-3965-AB14-2F69EAE7C005}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

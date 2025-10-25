@@ -1,0 +1,138 @@
+syntax = "proto3";
+package nexus.trading;
+
+// ============================================================================
+// LEVEL 1 MARKET DATA (Best Bid/Offer)
+// ============================================================================
+message Level1Data {
+    string symbol = 1;
+    double timestamp = 2;
+
+    // Last Trade
+    double last_price = 3;
+    double last_size = 4;
+
+    // Best Bid/Offer (BBO)
+    double bid = 5;
+    double ask = 6;
+    int32 bid_size = 7;
+    int32 ask_size = 8;
+
+    // Daily Stats
+    double open = 9;
+    double high = 10;
+    double low = 11;
+    double close = 12;
+    double volume = 13;
+
+    // Additional Level 1 Fields
+    double vwap = 14;           // Volume Weighted Average Price
+    int64 trade_count = 15;     // Number of trades
+    double open_interest = 16;  // For futures
+}
+
+// ============================================================================
+// LEVEL 2 MARKET DATA (Market Depth / Order Book)
+// ============================================================================
+message Level2Data {
+    string symbol = 1;
+    double timestamp = 2;
+
+    // Order Book Depth
+    repeated PriceLevel bids = 3;  // Bid side (buy orders)
+    repeated PriceLevel asks = 4;  // Ask side (sell orders)
+
+    // Book Statistics
+    int32 bid_depth = 5;           // Number of bid levels
+    int32 ask_depth = 6;           // Number of ask levels
+    double total_bid_volume = 7;   // Total volume on bid side
+    double total_ask_volume = 8;   // Total volume on ask side
+
+    // Imbalance Metrics
+    double order_imbalance = 9;    // (bid_vol - ask_vol) / (bid_vol + ask_vol)
+    double spread_bps = 10;        // Spread in basis points
+}
+
+message PriceLevel {
+    double price = 1;
+    double size = 2;
+    int32 num_orders = 3;          // Number of orders at this level
+    string exchange = 4;           // Exchange/ECN identifier
+}
+
+// Combined Market Data Message
+message MarketData {
+    string symbol = 1;
+    double timestamp = 2;
+
+    // Level 1 Data (always included)
+    Level1Data level1 = 3;
+
+    // Level 2 Data (optional, for strategies that need depth)
+    Level2Data level2 = 4;
+
+    // Data type indicator
+    enum DataType {
+        LEVEL1_ONLY = 0;
+        LEVEL1_AND_LEVEL2 = 1;
+    }
+    DataType data_type = 5;
+}
+
+// Trading Signal
+message TradingSignal {
+    enum SignalType {
+        NEUTRAL = 0;
+        BUY = 1;
+        SELL = 2;
+        STRONG_BUY = 3;
+        STRONG_SELL = 4;
+    }
+    SignalType signal_type = 1;
+    double confidence = 2;
+    string symbol = 3;
+    double position_size = 4;
+    double stop_loss = 5;
+    double take_profit = 6;
+}
+
+// Order
+message Order {
+    string order_id = 1;
+    string symbol = 2;
+    string side = 3;  // BUY/SELL
+    double quantity = 4;
+    double price = 5;
+    string status = 6;
+}
+
+// Position
+message Position {
+    string symbol = 1;
+    double quantity = 2;
+    double avg_price = 3;
+    double unrealized_pnl = 4;
+    double realized_pnl = 5;
+    string status = 6;
+}
+
+// Position List
+message PositionList {
+    repeated Position positions = 1;
+}
+
+// Empty message for requests that don't need parameters
+message Empty {
+}
+
+// Services
+service TradingService {
+    // Market Data Streaming
+    rpc StreamMarketData(stream MarketData) returns (stream TradingSignal);
+    rpc StreamLevel1(stream Level1Data) returns (stream TradingSignal);
+    rpc StreamLevel2(stream Level2Data) returns (stream TradingSignal);
+
+    // Order Management
+    rpc SubmitOrder(Order) returns (Order);
+    rpc GetPositions(Empty) returns (PositionList);
+}
